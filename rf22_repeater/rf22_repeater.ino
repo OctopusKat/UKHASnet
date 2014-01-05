@@ -19,11 +19,6 @@ int n, count = 0, data_interval = 2;
 uint8_t data[30] = "3>52.0,-0.0T26[B]";
 uint8_t id = 'B';
 
-void CharToByte(char* chars, byte* bytes, unsigned int count){
-    for(unsigned int i = 0; i < count; i++)
-    	bytes[i] = (byte)chars[i];
-}
-
 void setupRFM22(){  
   //GFSK_Rb2Fd5
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
@@ -74,7 +69,7 @@ void loop()
   while (1)
   {
     count++;
-    Serial.print(count);
+    //Serial.print(count);
     
     // Listen for data
     uint8_t buf[RF22_MAX_MESSAGE_LEN];
@@ -90,7 +85,7 @@ void loop()
         //THIS IS WHERE WE SORT OUT THE REPEATER
         // Need to take the recieved buffer and decode it and add a reference
         
-        if (buf[0] > 0){
+        if (buf[0] > '0'){
           
           //Reduce the repeat value
           buf[0] = buf[0] - 1;
@@ -108,10 +103,15 @@ void loop()
            }
           }
           
+          Serial.print("Sent data: ");
           Serial.println((char*)buf);
           rf22.send(buf, sizeof(buf));
           rf22.waitPacketSent();
           //delay(100);
+        }
+        else{
+          Serial.print("Stop ");
+          Serial.println((char*)buf);
         }
       }
       else
