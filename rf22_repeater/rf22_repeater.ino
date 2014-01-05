@@ -13,8 +13,9 @@ RF22 rf22;
 int n, count = 5;
 
 //Msg format
-// ID,count,HH:MM:SS,Repeat Value,Data
-//e.g. A,123,3,>52.0,-0.0[AAB]
+// ID,count,Repeat Value>Data[Repeater ID 1, Repeater ID 2]
+//e.g. A,123,3>52.0,-0.0[AAB]
+
 uint8_t data[30] = "B,001,3>52.0,-0.0[B]";
 uint8_t id = 'B';
 
@@ -136,13 +137,13 @@ void loop()
       rf22.waitPacketSent();
     }
     
-    /*
-    if ((count % 10) ==0){
+    
+    if ((count % 50) == 0){
       setupRadio();
       cw_ID();
       setupRFM22();
     }
-    */
+    
     //delay(1000);
     
     
