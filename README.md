@@ -23,13 +23,13 @@ common data sets will be assigned a start character.
 
 Prototype 1 format (4/1/14)
 
-example: B,001,3>52.0,-0.0[B]
-	ID,count,repeat_value>lat,lon[node_ID1]
+	B,001,3>52.0,-0.0[B]
+ID,count,repeat_value>lat,lon[node_ID1]
 
 Prototype 2 format (5/1/14)
 
-example: 3>52.0,-0.0[B]
-	repeat_value>lat,lon[node_ID1]
+	3>52.0,-0.0[B]
+repeat_value>lat,lon[node_ID1]
 	
 The removal of ID at the beginning of the string is that it is
 instead at the end to allow for the path to be constructed. Count 
