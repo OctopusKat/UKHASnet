@@ -10,14 +10,14 @@
 // Singleton instance of the radio
 RF22 rf22;
 
-int n, count = 5, data_interval = 2;
+int n, count = 0, data_interval = 2;
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3>52.0,-0.0[B]";
-uint8_t id = 'B';
+uint8_t data[30] = "3>52.0,-0.0[A]";
+uint8_t id = 'A';
 
 void CharToByte(char* chars, byte* bytes, unsigned int count){
     for(unsigned int i = 0; i < count; i++)
@@ -54,6 +54,7 @@ void cw_ID(){
 void setup() 
 {
   Serial.begin(9600);
+  randomSeed(analogRead(0));
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
@@ -73,6 +74,7 @@ void loop()
   while (1)
   {
     count++;
+    Serial.print(count);
     
     // Listen for data
     uint8_t buf[RF22_MAX_MESSAGE_LEN];
@@ -122,15 +124,17 @@ void loop()
       Serial.print(".");
     }
     
-    if ((count % data_interval) == 0){
-      Serial.println("Sending to rf22_server");
+    if (count == data_interval){
+      Serial.println("Sending");
       // Send a message to rf22_server
       
       rf22.send(data, sizeof(data));
    
       rf22.waitPacketSent();
       
-      data_interval = random(20);
+      data_interval = random(20) + count;
+      Serial.print("Next string: ");
+      Serial.println(data_interval);
     }
     
     
