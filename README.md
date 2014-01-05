@@ -52,11 +52,11 @@ example
 
 As the message is repeated it will gain further IDs appended to the end.
 
-	2L52.0,-0.0T22.0V3.7:Hello World[B,D] - note the repeat value is less
+	2L52.0,-0.0T22.0V3.7:hello world[B,D] - note the repeat value is less
 
-	1L52.0,-0.0T22.0V3.7:Hello World[B,D,E]
+	1L52.0,-0.0T22.0V3.7:hello world[B,D,E]
 
-	0L52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be repeated.
+	0L52.0,-0.0T22.0V3.7:hello world[B,D,E,X] - this final string won't be repeated.
 
 The suggested setup would be to have a well placed repeater with a good 
 view of the sky (such as on your roof). You would also have a number of 
