@@ -37,23 +37,25 @@ put in the data section.
 
 Suggested start characters for data within the string
 
-[ : start of the node path
-] : end of the node path this needs to be at the end of the packet.
-> : location, suggested format is >latitude,longitude,altitude
-T : temperature data, multiple values could be seperated by ,
-V : voltage data, for monitor battery levels
-: : personal message
+ [ : start of the node path
+ ] : end of the node path this needs to be at the end of the packet.
+ > : location, suggested format is >latitude,longitude,altitude
+ T : temperature data, multiple values could be seperated by ,
+ V : voltage data, for monitor battery levels
+ : : personal message
 
 The various data fields can be stringed together in one message for 
 example
 
-3>52.0,-0.0T22.0V3.7:Hello World[B]
+ 3>52.0,-0.0T22.0V3.7:Hello World[B]
 
 As the message is repeated it will gain further IDs appended to the end.
 
-2>52.0,-0.0T22.0V3.7:Hello World[B,D] - note the repeat value is less
-1>52.0,-0.0T22.0V3.7:Hello World[B,D,E]
-0>52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be 
+ 2>52.0,-0.0T22.0V3.7:Hello World[B,D] - note the repeat value is less
+
+ 1>52.0,-0.0T22.0V3.7:Hello World[B,D,E]
+
+ 0>52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be 
 repeated.
 
 The suggested setup would be to have a well placed repeater with a good 
