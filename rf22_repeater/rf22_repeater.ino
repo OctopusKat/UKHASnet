@@ -10,7 +10,7 @@
 // Singleton instance of the radio
 RF22 rf22;
 
-int n, count = 0, data_interval = 2;
+int n, count = 0, data_interval = 2, path = 0;
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
@@ -92,22 +92,28 @@ void loop()
           
           //Add the repeater ID
           //First find "]"
-          byte wantedval = ']';
           
           for (int i=0; i<len; i++) {
-           if (buf[i] == wantedval) {
-             buf[i] = ',';
-             buf[i + 1] = id;
-             buf[i + 2] = ']';
-             break;
-           }
+            if(buf[i] == '['){
+              path = 1;
+            }
+            if((buf[i] == id) && (path == 1)){
+              break;
+            }
+            if (buf[i] == ']') {
+              buf[i] = ',';
+              buf[i + 1] = id;
+              buf[i + 2] = ']';
+              path = 0;
+              
+              Serial.print("Sent data: "); Serial.println((char*)buf);
+              rf22.send(buf, sizeof(buf));
+              rf22.waitPacketSent();
+              break;
+            }
           }
           
-          Serial.print("Sent data: ");
-          Serial.println((char*)buf);
-          rf22.send(buf, sizeof(buf));
-          rf22.waitPacketSent();
-          //delay(100);
+
         }
         else{
           Serial.print("Stop ");
