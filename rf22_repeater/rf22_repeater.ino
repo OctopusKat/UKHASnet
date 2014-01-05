@@ -16,7 +16,7 @@ int n, count = 0, data_interval = 2, path = 0;
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3>52.0,-0.0T26[A]";
+uint8_t data[30] = "3L52.0,-0.0T26[A]";
 uint8_t id = 'A';
 
 void setupRFM22(){  

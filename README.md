@@ -28,8 +28,8 @@ ID,count,repeat_value>lat,lon[node_ID1]
 
 Prototype 2 format (5/1/14)
 
-	3>52.0,-0.0[B]
-repeat_value>lat,lon[node_ID1]
+	3L52.0,-0.0[B]
+repeat_valueLlat,lon[node_ID1]
 	
 The removal of ID at the beginning of the string is that it is
 instead at the end to allow for the path to be constructed. Count 
@@ -40,7 +40,7 @@ Suggested start characters for data within the string
 
 	[ : start of the node path
  	] : end of the node path this needs to be at the end of the packet.
- 	> : location, suggested format is >latitude,longitude,altitude
+ 	L : location, suggested format is >latitude,longitude,altitude
  	T : temperature data, multiple values could be seperated by ,
  	V : voltage data, for monitor battery levels
  	: : personal message
@@ -48,15 +48,15 @@ Suggested start characters for data within the string
 The various data fields can be stringed together in one message for 
 example
 
-	3>52.0,-0.0T22.0V3.7:Hello World[B]
+	3L52.0,-0.0T22.0V3.7:Hello World[B]
 
 As the message is repeated it will gain further IDs appended to the end.
 
-	2>52.0,-0.0T22.0V3.7:Hello World[B,D] - note the repeat value is less
+	2L52.0,-0.0T22.0V3.7:Hello World[B,D] - note the repeat value is less
 
-	1>52.0,-0.0T22.0V3.7:Hello World[B,D,E]
+	1L52.0,-0.0T22.0V3.7:Hello World[B,D,E]
 
-	0>52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be repeated.
+	0L52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be repeated.
 
 The suggested setup would be to have a well placed repeater with a good 
 view of the sky (such as on your roof). You would also have a number of 
