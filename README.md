@@ -7,7 +7,9 @@ to allow for high altitude communications such as via meterological
 balloons.
 
 The first prototypes are based upon the RFM22 868MHZ radio modules
-and Arduino (AVR based) microprocessors.
+and Arduino (AVR based) microprocessors however the aim is to keep 
+the format and design open so that this can be upgrade or changed in 
+the future.
 
 Each node periodically transmits a data string as well as listening
 and repeating any data that it receives. To keep track of repeating
@@ -53,3 +55,14 @@ As the message is repeated it will gain further IDs appended to the end.
 1>52.0,-0.0T22.0V3.7:Hello World[B,D,E]
 0>52.0,-0.0T22.0V3.7:Hello World[B,D,E,X] - this final string won't be 
 repeated.
+
+The suggested setup would be to have a well placed repeater with a good 
+view of the sky (such as on your roof). You would also have a number of 
+nodes locally for example as temperature sensors. These would regularly 
+communicate with each other as well as an internet connected node (such 
+as an arduino connected to a computer via usb-serial) which would store 
+and upload data. Occasionally a node will be flown on a meterological 
+balloon which would temporarily connect your home network with other 
+networks allowing an exchange of data. The computer connected node would 
+allow you to send personal messages to others networks and people via the 
+balloon.
