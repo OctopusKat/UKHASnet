@@ -10,13 +10,13 @@
 // Singleton instance of the radio
 RF22 rf22;
 
-int n, count = 5;
+int n, count = 5, data_interval = 2;
 
 //Msg format
-// ID,count,Repeat Value>Data[Repeater ID 1, Repeater ID 2]
-//e.g. A,123,3>52.0,-0.0[AAB]
+// Repeat Value Data[Repeater ID 1, Repeater ID 2]
+//e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "B,001,3>52.0,-0.0[B]";
+uint8_t data[30] = "3>52.0,-0.0[B]";
 uint8_t id = 'B';
 
 void CharToByte(char* chars, byte* bytes, unsigned int count){
@@ -73,11 +73,8 @@ void loop()
   while (1)
   {
     count++;
-    Serial.println(count);
-
     
-    
-    // Now wait for a reply
+    // Listen for data
     uint8_t buf[RF22_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
 
@@ -91,26 +88,23 @@ void loop()
         //THIS IS WHERE WE SORT OUT THE REPEATER
         // Need to take the recieved buffer and decode it and add a reference
         
-        if (buf[6] > 0){
+        if (buf[0] > 0){
           
           //Reduce the repeat value
-          buf[6] = buf[6] - 1;
+          buf[0] = buf[0] - 1;
           
           //Add the repeater ID
           //First find "]"
           byte wantedval = ']';
-          int wantedpos;
           
           for (int i=0; i<len; i++) {
            if (buf[i] == wantedval) {
-             wantedpos = i;
-              break;
+             buf[i] = ',';
+             buf[i + 1] = id;
+             buf[i + 2] = ']';
+             break;
            }
           }
-          
-          buf[wantedpos] = ',';
-          buf[wantedpos + 1] = id;
-          buf[wantedpos + 2] = ']';
           
           Serial.println((char*)buf);
           rf22.send(buf, sizeof(buf));
@@ -125,16 +119,18 @@ void loop()
     }
     else
     {
-      Serial.println("No reply, is rf22_server running?");
+      Serial.print(".");
     }
     
-    if ((count % 6) == 0){
+    if ((count % data_interval) == 0){
       Serial.println("Sending to rf22_server");
       // Send a message to rf22_server
       
       rf22.send(data, sizeof(data));
    
       rf22.waitPacketSent();
+      
+      data_interval = random(20);
     }
     
     
@@ -143,9 +139,5 @@ void loop()
       cw_ID();
       setupRFM22();
     }
-    
-    //delay(1000);
-    
-    
   }
 }
