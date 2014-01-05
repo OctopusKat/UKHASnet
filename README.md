@@ -48,7 +48,7 @@ Suggested start characters for data within the string
 The various data fields can be stringed together in one message for 
 example
 
-	3L52.0,-0.0T22.0V3.7:Hello World[B]
+	3L52.0,-0.0T22.0V3.7:hello world[B]
 
 As the message is repeated it will gain further IDs appended to the end.
 

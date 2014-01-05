@@ -13,7 +13,7 @@ RF22 rf22;
 //Msg format
 // ID,count,HH:MM:SS,Repeat Value,Data
 //e.g. A,123,3,>52.0,-0.0[AAB]
-uint8_t data[30] = "A,001,3>52.0,-0.0[A]";
+uint8_t data[30] = "L52.0,-0.0[A]";
 uint8_t id = 'A';
 
 int n, count = 1;
