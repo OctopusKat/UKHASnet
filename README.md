@@ -68,3 +68,5 @@ balloon which would temporarily connect your home network with other
 networks allowing an exchange of data. The computer connected node would 
 allow you to send personal messages to others networks and people via the 
 balloon.
+
+For more information come and discuss on #ukhasnet on irc.freenode.net
