@@ -6,6 +6,7 @@
 
 #include <SPI.h>
 #include <RF22.h>
+#include <EEPROM.h>
 
 // Singleton instance of the radio
 RF22 rf22;
@@ -48,8 +49,14 @@ void cw_ID(){
 
 void setup() 
 {
+  pinMode(3, OUTPUT);
+  digitalWrite(3, LOW);
   Serial.begin(9600);
   randomSeed(analogRead(0));
+  
+  //Read EEPROM to detect if we already have set an ID for this node
+  //http://arduino.cc/en/Reference/EEPROMRead
+  id = EEPROM.read(0);
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
