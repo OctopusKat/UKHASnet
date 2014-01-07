@@ -40,10 +40,10 @@ Suggested start characters for data within the string
 
 	[ : start of the node path
  	] : end of the node path this needs to be at the end of the packet.
- 	L : location, suggested format is >latitude,longitude,altitude
+ 	L : location, suggested format is Llatitude,longitude,altitude
  	T : temperature data, multiple values could be seperated by ,
  	V : voltage data, for monitor battery levels
- 	: : personal message
+ 	: : personal message - message in lower case only
 
 The various data fields can be stringed together in one message for 
 example
