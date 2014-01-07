@@ -17,8 +17,8 @@ int n, count = 0, data_interval = 2, path = 0;
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3L52.0,-0.0T26[A]";
-uint8_t id = 'A';
+uint8_t data[30] = "3L52.0,-0.0T26[X]";
+uint8_t id = 'X';
 
 void setupRFM22(){  
   //GFSK_Rb2Fd5
@@ -57,6 +57,7 @@ void setup()
   //Read EEPROM to detect if we already have set an ID for this node
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
+  data[15] = id;
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");

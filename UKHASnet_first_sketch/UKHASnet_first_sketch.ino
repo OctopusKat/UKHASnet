@@ -6,6 +6,7 @@ byte node_ID;
 
 void setup(){
   Serial.begin(9600);
+  delay(1000);
   Serial.println("Welcome to UKHASnet EEPROM programing sketch");
   Serial.println("Please enter the assigned node ID:");
 }
@@ -20,7 +21,8 @@ void loop(){
       
       Serial.println("Check node_ID (written to address 0)");
       Serial.print("node ID: ");
-      Serial.println(EEPROM.read(0));
+      
+      Serial.println((char)EEPROM.read(0));
       
       //Stop sketch
       while(1);
