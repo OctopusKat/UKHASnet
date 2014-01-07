@@ -12,13 +12,13 @@
 RF22 rf22;
 
 int n, count = 0, data_interval = 2, path = 0;
-byte data_count = 97; 'a'
+byte data_count = 97; // 'a'
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3aL52.0,-0.0T26[X]";
+uint8_t data[30] = "3aL52.0,-0.0T26[]";
 uint8_t id = 'X';
 
 void setupRFM22(){  
@@ -38,7 +38,15 @@ void setup()
   //Read EEPROM to detect if we already have set an ID for this node
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
-  data[15] = id;
+  
+  for (int i=0; i<len; i++) {
+    if (buf[i] == ']') {
+      data[i] = id;
+      data[i+1] = ']';
+      break;
+    }
+  }
+  
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
@@ -133,9 +141,9 @@ void loop()
       data_count++;
       //0 packet is only sent on the first transmission so we need to move it along
       // when we roll over.
-      // 97 = 'a' up to 122 = 'z'
+      // 98 = 'b' up to 122 = 'z'
       if(data_count == 123){
-        data_count = 97;
+        data_count = 98; //'b'
       }
       data[1] = data_count;
       
