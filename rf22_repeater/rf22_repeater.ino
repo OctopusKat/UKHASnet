@@ -12,12 +12,13 @@
 RF22 rf22;
 
 int n, count = 0, data_interval = 2, path = 0;
+byte data_count = 0;
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3L52.0,-0.0T26[X]";
+uint8_t data[30] = "3#0L52.0,-0.0T26[X]";
 uint8_t id = 'X';
 
 void setupRFM22(){  
@@ -26,26 +27,6 @@ void setupRFM22(){
   
   rf22.setTxPower(RF22_TXPOW_17DBM);
 }
-
-void setupRadio(){
-
-  rf22.spiWrite(0x71, 0x00); // unmodulated carrier
-  rf22.setTxPower(RF22_TXPOW_17DBM);
-  rf22.spiWrite(0x07, 0x08); // turn tx on
-  delay(1000);
-}
-
-void cw_ID(){
-  rf22.spiWrite(0x07, 0x01); //off
-  delay(1000);
-  rf22.spiWrite(0x07, 0x08); //on
-  delay(1000);
-  rf22.spiWrite(0x07, 0x01); //off
-  delay(1000);
-  rf22.spiWrite(0x07, 0x08); //on
-  delay(1000);
-  rf22.spiWrite(0x07, 0x01); //off
-  }
 
 void setup() 
 {
@@ -139,23 +120,30 @@ void loop()
     }
     
     if (count == data_interval){
+      
+      //**** Packet Tx Count ******
+      //using a byte to keep track of transmit count
+      // its meant to roll over
+      data_count++;
+      //0 packet is only sent on the first transmission so we need to move it along
+      // when we roll over.
+      if(data_count == 0){
+        data_count++;
+      }
+      data[2] = data_count;
+      
+      
       Serial.println("Sending");
-      // Send a message to rf22_server
+      // Send a message
       
       rf22.send(data, sizeof(data));
    
       rf22.waitPacketSent();
       
+      //**** Packet Tx Interval ******
       data_interval = random(20) + count;
       Serial.print("Next string: ");
       Serial.println(data_interval);
     }
-    
-    if ((count % 50) == 0){
-      setupRadio();
-      cw_ID();
-      setupRFM22();
-    }
-    
   }
 }
