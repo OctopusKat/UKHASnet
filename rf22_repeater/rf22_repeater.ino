@@ -12,13 +12,13 @@
 RF22 rf22;
 
 int n, count = 0, data_interval = 2, path = 0;
-byte data_count = 0;
+byte data_count = 97; 'a'
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3>52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3#0L52.0,-0.0T26[X]";
+uint8_t data[30] = "3aL52.0,-0.0T26[X]";
 uint8_t id = 'X';
 
 void setupRFM22(){  
@@ -51,6 +51,12 @@ void setup()
   rf22.setFrequency(869.50);
   
   setupRFM22();
+  delay(1000);
+  
+  //Send first packet
+  Serial.println("Sending first packet");
+  rf22.send(data, sizeof(data));
+  rf22.waitPacketSent();
 }
 
 void loop()
@@ -127,10 +133,11 @@ void loop()
       data_count++;
       //0 packet is only sent on the first transmission so we need to move it along
       // when we roll over.
-      if(data_count == 0){
-        data_count++;
+      // 97 = 'a' up to 122 = 'z'
+      if(data_count == 123){
+        data_count = 97;
       }
-      data[2] = data_count;
+      data[1] = data_count;
       
       
       Serial.println("Sending");
