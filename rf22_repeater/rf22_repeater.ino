@@ -1,8 +1,8 @@
-// rf22_client.pde
-// -*- mode: C++ -*-
-// Example sketch showing how to create a simple messageing client
-// with the RF22 class. RF22 class does not provide for addressing or reliability.
-// It is designed to work with the other example rf22_server
+/*
+UKHASnet rf22_repeater code
+
+based on rf22_client.pde/ino from the RF22 library
+*/
 
 #include <SPI.h>
 #include <RF22.h>
@@ -13,6 +13,7 @@ RF22 rf22;
 
 int n, count = 0, data_interval = 2, path = 0;
 byte data_count = 97; // 'a'
+int rfm22_shutdown = 3;
 
 //Msg format
 // Repeat Value Data[Repeater ID 1, Repeater ID 2]
@@ -24,14 +25,13 @@ uint8_t id = 'X';
 void setupRFM22(){  
   //GFSK_Rb2Fd5
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
-  
   rf22.setTxPower(RF22_TXPOW_17DBM);
 }
 
 void setup() 
 {
-  pinMode(3, OUTPUT);
-  digitalWrite(3, LOW);
+  pinMode(rfm22_shutdown, OUTPUT);
+  digitalWrite(rfm22_shutdown, LOW); //Turn the rfm22 radio on
   Serial.begin(9600);
   randomSeed(analogRead(0));
   
@@ -39,6 +39,9 @@ void setup()
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
   
+  //scan through and insert the node_id into the data string
+  // This will need to be moved later to allow for generation of dynamic
+  // data strings
   for (int i=0; i<len; i++) {
     if (buf[i] == ']') {
       data[i] = id;
@@ -46,7 +49,6 @@ void setup()
       break;
     }
   }
-  
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
@@ -85,7 +87,7 @@ void loop()
       {
         Serial.print("got reply: ");
         Serial.println((char*)buf);
-        //THIS IS WHERE WE SORT OUT THE REPEATER
+        
         // Need to take the recieved buffer and decode it and add a reference
         
         if (buf[0] > '0'){
@@ -139,7 +141,7 @@ void loop()
       //using a byte to keep track of transmit count
       // its meant to roll over
       data_count++;
-      //0 packet is only sent on the first transmission so we need to move it along
+      //'a' packet is only sent on the first transmission so we need to move it along
       // when we roll over.
       // 98 = 'b' up to 122 = 'z'
       if(data_count == 123){
@@ -157,7 +159,7 @@ void loop()
       
       //**** Packet Tx Interval ******
       data_interval = random(20) + count;
-      Serial.print("Next string: ");
+      Serial.print("Next string in: ");
       Serial.println(data_interval);
     }
   }
