@@ -32,9 +32,15 @@ Prototype 2 format (5/1/14)
 repeat_valueLlat,lon[node_ID1]
 	
 The removal of ID at the beginning of the string is that it is
-instead at the end to allow for the path to be constructed. Count 
-is data that doesn't necessarily need to be defined and can be 
-put in the data section.
+instead at the end to allow for the path to be constructed.
+
+Prototype 3 format (8/1/14)
+
+	3fL52.0,-0.0[B]
+repeat_value packet_sequence Llat,lon[node_ID1]
+
+Packet_sequence cycles between 'b' and 'z'. String 'a' is only sent
+on boot and will contain hardcoded information such as location.
 
 Suggested start characters for data within the string
 
@@ -48,13 +54,13 @@ Suggested start characters for data within the string
 The various data fields can be stringed together in one message for 
 example
 
-	3L52.0,-0.0T22.0V3.7:hello world[B]
+	3gL52.0,-0.0T22.0V3.7:hello world[B]
 
 As the message is repeated it will gain further IDs appended to the end.
 
-	2L52.0,-0.0T22.0V3.7:hello world[B,D] - note the repeat value is less
+	2gL52.0,-0.0T22.0V3.7:hello world[B,D] - note the repeat value is less
 
-	1L52.0,-0.0T22.0V3.7:hello world[B,D,E]
+	1gL52.0,-0.0T22.0V3.7:hello world[B,D,E]
 
 	0L52.0,-0.0T22.0V3.7:hello world[B,D,E,X] - this final string won't be repeated.
 
