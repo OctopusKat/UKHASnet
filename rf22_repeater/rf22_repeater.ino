@@ -42,8 +42,9 @@ void setup()
   //scan through and insert the node_id into the data string
   // This will need to be moved later to allow for generation of dynamic
   // data strings
-  for (int i=0; i<len; i++) {
-    if (buf[i] == ']') {
+  uint8_t len_data = sizeof(data);
+  for (int i=0; i<len_data; i++) {
+    if (data[i] == ']') {
       data[i] = id;
       data[i+1] = ']';
       break;
