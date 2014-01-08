@@ -22,9 +22,6 @@ int rfm22_shutdown = 3;
 uint8_t data[30] = "3aL52.0,-0.0T26[]";
 uint8_t id = 'X';
 
-uint8_t buf[RF22_MAX_MESSAGE_LEN];
-uint8_t len = sizeof(buf);
-
 void setupRFM22(){  
   //GFSK_Rb2Fd5
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
@@ -81,6 +78,9 @@ void loop()
     //Serial.print(count);
     
     // Listen for data
+    uint8_t buf[RF22_MAX_MESSAGE_LEN];
+    uint8_t len = sizeof(buf);
+    
     if (rf22.waitAvailableTimeout(10000))
     { 
       // Should be a message for us now   
