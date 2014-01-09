@@ -136,7 +136,7 @@ void loop()
       Serial.print(".");
     }
     
-    if (count == data_interval){
+    if (count >= data_interval){
       
       //**** Packet Tx Count ******
       //using a byte to keep track of transmit count
@@ -159,7 +159,7 @@ void loop()
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
-      data_interval = random(20) + count;
+      data_interval = random(1, 20) + count;
       Serial.print("Next string in: ");
       Serial.println(data_interval);
     }
