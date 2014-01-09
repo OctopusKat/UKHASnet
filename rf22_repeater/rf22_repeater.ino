@@ -13,19 +13,39 @@ RF22 rf22;
 
 int n, count = 0, data_interval = 2, path = 0;
 byte data_count = 97; // 'a'
+byte num_repeats = '3';
 int rfm22_shutdown = 3;
 
 //Msg format
-// Repeat Value Data[Repeater ID 1, Repeater ID 2]
-//e.g. 3>52.0,-0.0[A,A,B]
+// Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
+//e.g. 3hL52.0,-0.0[A,A,B]
 
 uint8_t data[30] = "3aL52.0,-0.0T26[]";
 uint8_t id = 'X';
 
 void setupRFM22(){  
   //GFSK_Rb2Fd5
+  rf22.setFrequency(869.50);
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
   rf22.setTxPower(RF22_TXPOW_17DBM);
+}
+
+void gen_Data(){
+  //scan through and insert the node_id into the data string
+  // This will need to be moved later to allow for generation of dynamic
+  // data strings
+  uint8_t len_data = sizeof(data);
+  for (int i=0; i<len_data; i++) {
+    
+    if (i == 0){
+      data[i] = num_repeats;
+    }
+    if (data[i] == ']') {
+      data[i] = id;
+      data[i+1] = ']';
+      break;
+    }
+  }
 }
 
 void setup() 
@@ -39,17 +59,8 @@ void setup()
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
   
-  //scan through and insert the node_id into the data string
-  // This will need to be moved later to allow for generation of dynamic
-  // data strings
-  uint8_t len_data = sizeof(data);
-  for (int i=0; i<len_data; i++) {
-    if (data[i] == ']') {
-      data[i] = id;
-      data[i+1] = ']';
-      break;
-    }
-  }
+  gen_Data();
+  Serial.print("Sent data: "); Serial.println((char*)data);
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
@@ -58,8 +69,6 @@ void setup()
   else{
     Serial.println("RF22 Booted");
   }
-  
-  rf22.setFrequency(869.50);
   
   setupRFM22();
   delay(1000);
@@ -86,7 +95,7 @@ void loop()
       // Should be a message for us now   
       if (rf22.recv(buf, &len))
       {
-        Serial.print("got reply: ");
+        Serial.print("rx'd: ");
         Serial.println((char*)buf);
         
         // Need to take the recieved buffer and decode it and add a reference
@@ -112,7 +121,10 @@ void loop()
               buf[i + 2] = ']';
               path = 0;
               
-              Serial.print("Sent data: "); Serial.println((char*)buf);
+              //random delay to try and avoid packet collision
+              delay(random(100, 500));
+              
+              Serial.print("Repeat data: "); Serial.println((char*)buf);
               rf22.send(buf, sizeof(buf));
               rf22.waitPacketSent();
               break;
@@ -145,7 +157,7 @@ void loop()
       //'a' packet is only sent on the first transmission so we need to move it along
       // when we roll over.
       // 98 = 'b' up to 122 = 'z'
-      if(data_count == 123){
+      if(data_count > 122){
         data_count = 98; //'b'
       }
       data[1] = data_count;
@@ -154,13 +166,13 @@ void loop()
       Serial.println("Sending");
       // Send a message
       
+      Serial.print("Tx data: "); Serial.println((char*)data);
       rf22.send(data, sizeof(data));
-   
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
       data_interval = random(1, 20) + count;
-      Serial.print("Next string in: ");
+      Serial.print("Next string on: ");
       Serial.println(data_interval);
     }
   }
