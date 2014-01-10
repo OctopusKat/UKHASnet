@@ -8,6 +8,11 @@ based on rf22_client.pde/ino from the RF22 library
 #include <RF22.h>
 #include <EEPROM.h>
 
+//Required for DSB18b20 Temp sensor
+#include <OneWire.h>
+OneWire  ds(5);  // on pin 10 (a 4.7K resistor is necessary)
+
+
 // Singleton instance of the radio
 RF22 rf22;
 
@@ -20,8 +25,8 @@ int rfm22_shutdown = 3;
 // Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3hL52.0,-0.0[A,A,B]
 
-uint8_t data[30] = "3aL52.0,-0.0T26[]";
-uint8_t id = 'X';
+char data[30];
+char id = 'X';
 
 void setupRFM22(){  
   //GFSK_Rb2Fd5
@@ -30,19 +35,98 @@ void setupRFM22(){
   rf22.setTxPower(RF22_TXPOW_17DBM);
 }
 
+int16_t get_Temp(){
+  byte i;
+  byte present = 0;
+  byte type_s;
+  byte ds_data[12];
+  byte addr[8];
+  
+  if ( !ds.search(addr)) {
+    ds.reset_search();
+    delay(250);
+    return(-1);
+  }
+
+  if (OneWire::crc8(addr, 7) != addr[7]) {
+      return(-1);
+  }
+ 
+  // the first ROM byte indicates which chip
+  switch (addr[0]) {
+    case 0x10:
+      //Serial.println("  Chip = DS18S20");  // or old DS1820
+      type_s = 1;
+      break;
+    case 0x28:
+      //Serial.println("  Chip = DS18B20");
+      type_s = 0;
+      break;
+    case 0x22:
+      //Serial.println("  Chip = DS1822");
+      type_s = 0;
+      break;
+    default:
+      //Serial.println("Device is not a DS18x20 family device.");
+      return(-1);
+  } 
+
+  ds.reset();
+  ds.select(addr);
+  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
+  
+  delay(1000);     // maybe 750ms is enough, maybe not
+  // we might do a ds.depower() here, but the reset will take care of it.
+  
+  present = ds.reset();
+  ds.select(addr);    
+  ds.write(0xBE);         // Read Scratchpad
+
+  for ( i = 0; i < 9; i++) {           // we need 9 bytes
+    ds_data[i] = ds.read();
+  }
+
+  // Convert the data to actual temperature
+  // because the result is a 16 bit signed integer, it should
+  // be stored to an "int16_t" type, which is always 16 bits
+  // even when compiled on a 32 bit processor.
+  int16_t raw = (ds_data[1] << 8) | ds_data[0];
+  if (type_s) {
+    raw = raw << 3; // 9 bit resolution default
+    if (ds_data[7] == 0x10) {
+      // "count remain" gives full 12 bit resolution
+      raw = (raw & 0xFFF0) + 12 - ds_data[6];
+    }
+  } else {
+    byte cfg = (ds_data[4] & 0x60);
+    // at lower res, the low bits are undefined, so let's zero them
+    if (cfg == 0x00) raw = raw & ~7;  // 9 bit resolution, 93.75 ms
+    else if (cfg == 0x20) raw = raw & ~3; // 10 bit res, 187.5 ms
+    else if (cfg == 0x40) raw = raw & ~1; // 11 bit res, 375 ms
+    //// default is 12 bit resolution, 750 ms conversion time
+  }
+  return(raw);
+}
+
 void gen_Data(){
+  
+  //Now we need to add the Temperature data (5bytes)
+  long int temp;
+  while((temp = get_Temp()) == -1){
+    delay(100);
+  }
+  temp = temp * 100;
+  temp = int(temp / 16);
+  n=sprintf(data, "%c%cL51.5,-0.05T%04d[]", num_repeats, data_count, temp);
+  
   //scan through and insert the node_id into the data string
   // This will need to be moved later to allow for generation of dynamic
   // data strings
   uint8_t len_data = sizeof(data);
   for (int i=0; i<len_data; i++) {
-    
-    if (i == 0){
-      data[i] = num_repeats;
-    }
-    if (data[i] == ']') {
-      data[i] = id;
-      data[i+1] = ']';
+    if (data[i] == '[') {
+      data[i+1] = id;
+      data[i+2] = ']';
       break;
     }
   }
@@ -58,9 +142,7 @@ void setup()
   //Read EEPROM to detect if we already have set an ID for this node
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
-  
-  gen_Data();
-  Serial.print("Sent data: "); Serial.println((char*)data);
+  delay(500);
   
   if (!rf22.init()){
     Serial.println("RF22 init failed");
@@ -73,9 +155,11 @@ void setup()
   setupRFM22();
   delay(1000);
   
+  gen_Data();
   //Send first packet
   Serial.println("Sending first packet");
-  rf22.send(data, sizeof(data));
+  Serial.print("Tx data: "); Serial.println((char*)data);
+  rf22.send((byte*)data, sizeof(data));
   rf22.waitPacketSent();
 }
 
@@ -160,14 +244,15 @@ void loop()
       if(data_count > 122){
         data_count = 98; //'b'
       }
-      data[1] = data_count;
+      
+      gen_Data();
       
       
       Serial.println("Sending");
       // Send a message
       
       Serial.print("Tx data: "); Serial.println((char*)data);
-      rf22.send(data, sizeof(data));
+      rf22.send((byte*)data, sizeof(data));
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
