@@ -34,6 +34,14 @@ char data[50];
 char id = 'X';
 
 void setupRFM22(){  
+  
+  if (!rf22.init()){
+    //Serial.println("RF22 init failed");
+  // Defaults after init are 434.0MHz, 0.05MHz AFC pull-in, modulation FSK_Rb2_4Fd36
+  }
+  else{
+    //Serial.println("RF22 Booted");
+  }
   //GFSK_Rb2Fd5
   rf22.setFrequency(869.50);
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
@@ -62,7 +70,8 @@ void gen_Data(){
   uint8_t rssi = rf22.rssiRead();
 
   //Put together the string
-  n=sprintf(data, "%c%cL51.5,-0.05T%04ld,%dR%d[]", num_repeats, data_count, temp, intTemp, rssi);
+  //n=sprintf(data, "%c%cL51.5,-0.05T%ld,%dR%d[]", num_repeats, data_count, temp, intTemp, rssi);
+  n=sprintf(data, "%c%cT%dR%d[]", num_repeats, data_count, intTemp, rssi);
   
   //scan through and insert the node_id into the data string
   // This will need to be moved later to allow for generation of dynamic
@@ -88,14 +97,6 @@ void setup()
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
   delay(500);
-  
-  if (!rf22.init()){
-    //Serial.println("RF22 init failed");
-  // Defaults after init are 434.0MHz, 0.05MHz AFC pull-in, modulation FSK_Rb2_4Fd36
-  }
-  else{
-    //Serial.println("RF22 Booted");
-  }
   
   setupRFM22();
   delay(1000);
@@ -204,6 +205,16 @@ void loop()
       data_interval = random(1, 20) + count;
       //Serial.print("Next string on: ");
       //Serial.println(data_interval);
+    }
+    
+    if((count % 500) == 0){
+    //Reboot Radio
+    digitalWrite(rfm22_shutdown, HIGH);
+    delay(1000);
+    digitalWrite(rfm22_shutdown, LOW); // Turn on Radio
+    delay(1000);
+    setupRFM22();
+    delay(1000);
     }
   }
 }
