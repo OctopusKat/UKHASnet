@@ -30,8 +30,8 @@ int rfm22_shutdown = 3, intTemp = 0;
 // Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3hL52.0,-0.0[A,A,B]
 
-char data[50];
-char id = 'X';
+char data[RF22_MAX_MESSAGE_LEN];
+char id = 'X';  
 
 void setupRFM22(){  
   
@@ -46,9 +46,19 @@ void setupRFM22(){
   rf22.setFrequency(869.50);
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
   rf22.setTxPower(RF22_TXPOW_17DBM);
+  
+  //Wider AF
+  rf22.spiWrite(0x02A, 0x10);
 }
 
 void gen_Data(){
+  
+  //**** Internal Temperature (RFM22) ******
+  intTemp = rf22.temperatureRead( 0x00,0 ) / 2;  //from RFM22
+  intTemp = intTemp - 64;
+  
+  //**** RSSI ******
+  uint8_t rssi = rf22.lastRssi();
   
   //**** Temperature ******
   //Now we need to add the Temperature data (5bytes)
@@ -57,20 +67,14 @@ void gen_Data(){
   while((temp = get_Temp()) == -1){
     delay(100);
   }
-  */
-  //temp = temp * 100;
-  //temp = int(temp / 16);
+  
+  temp = temp * 100;
+  temp = int(temp / 16);
 
-  
-  //**** Internal Temperature (RFM22) ******
-  intTemp = rf22.temperatureRead( 0x00,0 ) / 2;  //from RFM22
-  intTemp = intTemp - 64;
-  
-  //**** RSSI ******
-  uint8_t rssi = rf22.rssiRead();
 
   //Put together the string
-  //n=sprintf(data, "%c%cL51.5,-0.05T%ld,%dR%d[]", num_repeats, data_count, temp, intTemp, rssi);
+  n=sprintf(data, "%c%cL51.5,-0.05T%ld,%dR%d[]", num_repeats, data_count, temp, intTemp, rssi);
+  */
   n=sprintf(data, "%c%cT%dR%d[]", num_repeats, data_count, intTemp, rssi);
   
   //scan through and insert the node_id into the data string
@@ -168,13 +172,13 @@ void loop()
 
         }
         else{
-          //Serial.print("Stop ");
-          //Serial.println((char*)buf);
+          Serial.print("Stop ");
+          Serial.println((char*)buf);
         }
       }
       else
       {
-        //Serial.println("recv failed");
+        Serial.println("recv failed");
       }
     }
     else
@@ -197,11 +201,7 @@ void loop()
       
       gen_Data();
       
-      
-      //Serial.println("Sending");
-      // Send a message
-      
-      Serial.print("tx: "); Serial.println((char*)data);
+      //Serial.print("tx: "); Serial.println((char*)data);
       rf22.send((byte*)data, sizeof(data));
       rf22.waitPacketSent();
       
@@ -211,7 +211,7 @@ void loop()
       //Serial.println(data_interval);
     }
     
-    if((count % 500) == 0){
+    if((count % 100) == 0){
     //Reboot Radio
     digitalWrite(rfm22_shutdown, HIGH);
     delay(1000);
