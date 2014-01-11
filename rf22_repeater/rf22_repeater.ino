@@ -111,10 +111,12 @@ int16_t get_Temp(){
 void gen_Data(){
   
   //Now we need to add the Temperature data (5bytes)
-  long int temp;
+  long int temp = 0;
+  /*
   while((temp = get_Temp()) == -1){
     delay(100);
   }
+  */
   temp = temp * 100;
   temp = int(temp / 16);
   n=sprintf(data, "%c%cL51.5,-0.05T%04d[]", num_repeats, data_count, temp);
@@ -145,11 +147,11 @@ void setup()
   delay(500);
   
   if (!rf22.init()){
-    Serial.println("RF22 init failed");
+    //Serial.println("RF22 init failed");
   // Defaults after init are 434.0MHz, 0.05MHz AFC pull-in, modulation FSK_Rb2_4Fd36
   }
   else{
-    Serial.println("RF22 Booted");
+    //Serial.println("RF22 Booted");
   }
   
   setupRFM22();
@@ -157,8 +159,8 @@ void setup()
   
   gen_Data();
   //Send first packet
-  Serial.println("Sending first packet");
-  Serial.print("Tx data: "); Serial.println((char*)data);
+  //Serial.println("Sending first packet");
+  Serial.print("tx: "); Serial.println((char*)data);
   rf22.send((byte*)data, sizeof(data));
   rf22.waitPacketSent();
 }
@@ -179,7 +181,7 @@ void loop()
       // Should be a message for us now   
       if (rf22.recv(buf, &len))
       {
-        Serial.print("rx'd: ");
+        Serial.print("rx: ");
         Serial.println((char*)buf);
         
         // Need to take the recieved buffer and decode it and add a reference
@@ -208,7 +210,7 @@ void loop()
               //random delay to try and avoid packet collision
               delay(random(100, 500));
               
-              Serial.print("Repeat data: "); Serial.println((char*)buf);
+              //Serial.print("Repeat data: "); Serial.println((char*)buf);
               rf22.send(buf, sizeof(buf));
               rf22.waitPacketSent();
               break;
@@ -218,18 +220,18 @@ void loop()
 
         }
         else{
-          Serial.print("Stop ");
-          Serial.println((char*)buf);
+          //Serial.print("Stop ");
+          //Serial.println((char*)buf);
         }
       }
       else
       {
-        Serial.println("recv failed");
+        //Serial.println("recv failed");
       }
     }
     else
     {
-      Serial.print(".");
+      //Serial.print(".");
     }
     
     if (count >= data_interval){
@@ -248,17 +250,17 @@ void loop()
       gen_Data();
       
       
-      Serial.println("Sending");
+      //Serial.println("Sending");
       // Send a message
       
-      Serial.print("Tx data: "); Serial.println((char*)data);
+      Serial.print("tx: "); Serial.println((char*)data);
       rf22.send((byte*)data, sizeof(data));
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
       data_interval = random(1, 20) + count;
-      Serial.print("Next string on: ");
-      Serial.println(data_interval);
+      //Serial.print("Next string on: ");
+      //Serial.println(data_interval);
     }
   }
 }
