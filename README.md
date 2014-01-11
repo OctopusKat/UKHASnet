@@ -50,6 +50,8 @@ Suggested start characters for data within the string
  	T : temperature data, multiple values could be seperated by ,
  	V : voltage data, for monitor battery levels
  	: : personal message - message in lower case only
+	R : rssi
+	P : pressure
 
 The various data fields can be stringed together in one message for 
 example

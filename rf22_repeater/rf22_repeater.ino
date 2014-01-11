@@ -96,7 +96,12 @@ void setup()
   //Read EEPROM to detect if we already have set an ID for this node
   //http://arduino.cc/en/Reference/EEPROMRead
   id = EEPROM.read(0);
-  delay(500);
+  
+  if (id == 255){
+    Serial.print("ID = "); Serial.println(id);
+    Serial.println("Please setup node ID before running the repeater");
+    while(1){}
+  }
   
   setupRFM22();
   delay(1000);
@@ -114,7 +119,6 @@ void loop()
   while (1)
   {
     count++;
-    //Serial.print(count);
     
     // Listen for data
     uint8_t buf[RF22_MAX_MESSAGE_LEN];
@@ -152,7 +156,7 @@ void loop()
               path = 0;
               
               //random delay to try and avoid packet collision
-              delay(random(100, 500));
+              delay(random(50, 500));
               
               //Serial.print("Repeat data: "); Serial.println((char*)buf);
               rf22.send(buf, sizeof(buf));
