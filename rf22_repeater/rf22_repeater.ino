@@ -63,20 +63,18 @@ void gen_Data(){
   //**** Temperature ******
   //Now we need to add the Temperature data (5bytes)
   long int temp = 0;
-  /*
-  while((temp = get_Temp()) == -1){
-    delay(100);
+ 
+  temp = get_Temp();
+  if(temp != -99){
+    temp = int(temp / 16);
+    
+    //Put together the string
+    n=sprintf(data, "%c%cT%ld,%dR%d[%c]", num_repeats, data_count, temp, intTemp, rssi, id);
   }
-  
-  temp = temp * 100;
-  temp = int(temp / 16);
-
-
-  //Put together the string
-  n=sprintf(data, "%c%cL51.5,-0.05T%ld,%dR%d[]", num_repeats, data_count, temp, intTemp, rssi);
-  */
-  n=sprintf(data, "%c%cT%dR%d[]", num_repeats, data_count, intTemp, rssi);
-  
+  else{
+    n=sprintf(data, "%c%cT%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
+  }
+  /*
   //scan through and insert the node_id into the data string
   // This will need to be moved later to allow for generation of dynamic
   // data strings
@@ -88,6 +86,7 @@ void gen_Data(){
       break;
     }
   }
+  */
 }
 
 void setup() 
@@ -211,7 +210,7 @@ void loop()
       //Serial.println(data_interval);
     }
     
-    if((count % 100) == 0){
+    if((count % 20) == 0){
     //Reboot Radio
     digitalWrite(rfm22_shutdown, HIGH);
     delay(1000);
@@ -233,11 +232,11 @@ int16_t get_Temp(){
   if ( !ds.search(addr)) {
     ds.reset_search();
     delay(250);
-    return(-1);
+    return(-99);
   }
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
-      return(-1);
+      return(-99);
   }
  
   // the first ROM byte indicates which chip
