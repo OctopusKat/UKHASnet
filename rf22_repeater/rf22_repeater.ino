@@ -16,15 +16,15 @@ based on rf22_client.pde/ino from the RF22 library
 //Required for DSB18b20 Temp sensor
 #include <OneWire.h>
 OneWire  ds(5);  // on pin 10 (a 4.7K resistor is necessary)
-
+byte address0[8] = {0x28, 0x38, 0x59, 0x57, 0x3, 0x0, 0x0, 0x8E}; // Ext DS18B20 28 38 59 57 3 0 0 8E
 
 // Singleton instance of the radio
 RF22 rf22;
 
-int n, count = 0, data_interval = 2, path = 0;
+int n, count = 1, data_interval = 2, path = 0;
 byte data_count = 97; // 'a'
 byte num_repeats = '3';
-int rfm22_shutdown = 3, intTemp = 0;
+int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV, chargeV;
 
 //Msg format
 // Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
@@ -60,19 +60,26 @@ void gen_Data(){
   //**** RSSI ******
   uint8_t rssi = rf22.lastRssi();
   
+  //**** Battery Voltage ******
+  //Node A 4.11 = 879, 3.72 = 794
+  battV = analogRead(batt_pin);
+  
+  //**** Charger Voltage ******
+  chargeV = analogRead(charge_pin);
+  
   //**** Temperature ******
   //Now we need to add the Temperature data (5bytes)
   long int temp = 0;
  
-  temp = get_Temp();
+  temp = get_Temp(address0);
   if(temp != -99){
     temp = int(temp / 16);
     
     //Put together the string
-    n=sprintf(data, "%c%cT%d,%ldR%d[%c]", num_repeats, data_count, intTemp, temp, rssi, id);
+    n=sprintf(data, "%c%cT%d,%ldR%dV%d,%d[%c]", num_repeats, data_count, intTemp, temp, rssi, battV, chargeV, id);
   }
   else{
-    n=sprintf(data, "%c%cT%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
+    n=sprintf(data, "%c%cT%dR%dV%d,%d[%c]", num_repeats, data_count, intTemp, rssi, battV, chargeV, id);
   }
 }
 
@@ -81,7 +88,7 @@ void setup()
   pinMode(rfm22_shutdown, OUTPUT);
   digitalWrite(rfm22_shutdown, LOW); //Turn the rfm22 radio on
   Serial.begin(9600);
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(6));
   
   //Read EEPROM to detect if we already have set an ID for this node
   //http://arduino.cc/en/Reference/EEPROMRead
@@ -169,7 +176,7 @@ void loop()
     }
     else
     {
-      //Serial.print(".");
+      Serial.print(".");
     }
     
     if (count >= data_interval){
@@ -209,41 +216,15 @@ void loop()
   }
 }
 
-int16_t get_Temp(){
+int16_t get_Temp(byte addr[8]){
   byte i;
   byte present = 0;
   byte type_s;
   byte ds_data[12];
-  byte addr[8];
-  
-  if ( !ds.search(addr)) {
-    ds.reset_search();
-    delay(250);
-    return(-99);
-  }
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
       return(-99);
   }
- 
-  // the first ROM byte indicates which chip
-  switch (addr[0]) {
-    case 0x10:
-      //Serial.println("  Chip = DS18S20");  // or old DS1820
-      type_s = 1;
-      break;
-    case 0x28:
-      //Serial.println("  Chip = DS18B20");
-      type_s = 0;
-      break;
-    case 0x22:
-      //Serial.println("  Chip = DS1822");
-      type_s = 0;
-      break;
-    default:
-      //Serial.println("Device is not a DS18x20 family device.");
-      return(-99);
-  } 
 
   ds.reset();
   ds.select(addr);

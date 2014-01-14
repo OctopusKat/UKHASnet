@@ -3,7 +3,7 @@
 #include <EEPROM.h>
 #include <OneWire.h>
 
-OneWire  ds(10);  // on pin 10 (a 4.7K resistor is necessary)
+OneWire  ds(5);  // on pin 10 (a 4.7K resistor is necessary)
 
 byte node_ID;
 
@@ -27,6 +27,7 @@ void loop(){
       
       Serial.println((char)EEPROM.read(0));
       
+      delay(1000);
       //Now Search for Temperature Sensors
       Serial.println("Searching for temperature sensors");
       tempSensor();
