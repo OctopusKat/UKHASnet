@@ -69,24 +69,11 @@ void gen_Data(){
     temp = int(temp / 16);
     
     //Put together the string
-    n=sprintf(data, "%c%cT%ld,%dR%d[%c]", num_repeats, data_count, temp, intTemp, rssi, id);
+    n=sprintf(data, "%c%cT%d,%ldR%d[%c]", num_repeats, data_count, intTemp, temp, rssi, id);
   }
   else{
     n=sprintf(data, "%c%cT%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
   }
-  /*
-  //scan through and insert the node_id into the data string
-  // This will need to be moved later to allow for generation of dynamic
-  // data strings
-  uint8_t len_data = sizeof(data);
-  for (int i=0; i<len_data; i++) {
-    if (data[i] == '[') {
-      data[i+1] = id;
-      data[i+2] = ']';
-      break;
-    }
-  }
-  */
 }
 
 void setup() 
@@ -255,7 +242,7 @@ int16_t get_Temp(){
       break;
     default:
       //Serial.println("Device is not a DS18x20 family device.");
-      return(-1);
+      return(-99);
   } 
 
   ds.reset();
