@@ -21,7 +21,7 @@ byte address0[8] = {0x28, 0x38, 0x59, 0x57, 0x3, 0x0, 0x0, 0x8E}; // Ext DS18B20
 // Singleton instance of the radio
 RF22 rf22;
 
-int n, count = 1, data_interval = 2, path = 0;
+int n, count = 1, data_interval = 8, path = 0;
 byte data_count = 97; // 'a'
 byte num_repeats = '3';
 int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV, chargeV;
@@ -86,7 +86,15 @@ void gen_Data(){
 void setup() 
 {
   pinMode(rfm22_shutdown, OUTPUT);
-  digitalWrite(rfm22_shutdown, LOW); //Turn the rfm22 radio on
+  digitalWrite(rfm22_shutdown, HIGH); //Turn the rfm22 radio off
+  
+  //First check battery voltage
+  battV = analogRead(batt_pin);
+  
+  if (battV < 730){
+    delay(60000);
+  }
+  
   Serial.begin(9600);
   randomSeed(analogRead(6));
   
@@ -100,6 +108,8 @@ void setup()
     while(1){}
   }
   
+  digitalWrite(rfm22_shutdown, LOW); //Turn the rfm22 radio on
+  delay(1000);
   setupRFM22();
   delay(1000);
   
@@ -176,7 +186,7 @@ void loop()
     }
     else
     {
-      Serial.print(".");
+      //Serial.print(".");
     }
     
     if (count >= data_interval){
