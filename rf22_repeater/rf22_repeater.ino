@@ -63,6 +63,7 @@ void gen_Data(){
   
   //**** Battery Voltage ******
   //Node A 4.11 = 879, 3.72 = 794
+  //  V = (0.00458 * raw) + 0.0769
   battV = analogRead(batt_pin);
   
   //**** Charger Voltage ******
