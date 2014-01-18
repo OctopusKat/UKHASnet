@@ -21,10 +21,11 @@ byte address0[8] = {0x28, 0x38, 0x59, 0x57, 0x3, 0x0, 0x0, 0x8E}; // Ext DS18B20
 // Singleton instance of the radio
 RF22 rf22;
 
+int node_id = 0; //0 = gateway
 int n, count = 1, data_interval = 8, path = 0;
 byte data_count = 97; // 'a'
 byte num_repeats = '3';
-int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV, chargeV;
+int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV = 800, chargeV;
 
 //Msg format
 // Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
@@ -47,7 +48,7 @@ void setupRFM22(){
   rf22.setModemConfig(RF22::GFSK_Rb2Fd5);
   rf22.setTxPower(RF22_TXPOW_17DBM);
   
-  //Wider AF
+  //Wider AFC
   rf22.spiWrite(0x02A, 0x10);
 }
 
@@ -67,19 +68,26 @@ void gen_Data(){
   //**** Charger Voltage ******
   chargeV = analogRead(charge_pin);
   
-  //**** Temperature ******
-  //Now we need to add the Temperature data (5bytes)
-  long int temp = 0;
- 
-  temp = get_Temp(address0);
-  if(temp != -99){
-    temp = int(temp / 16);
-    
-    //Put together the string
-    n=sprintf(data, "%c%cT%d,%ldR%dV%d,%d[%c]", num_repeats, data_count, intTemp, temp, rssi, battV, chargeV, id);
+  if(node_id == 0){
+    //For Gateway (no sensors attached)
+     n=sprintf(data, "%c%cT%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
   }
-  else{
-    n=sprintf(data, "%c%cT%dR%dV%d,%d[%c]", num_repeats, data_count, intTemp, rssi, battV, chargeV, id);
+  else if(node_id == 1){
+    
+    //**** Temperature ******
+    //Now we need to add the Temperature data (5bytes)
+    long int temp = 0;
+    
+    temp = get_Temp(address0);
+    if(temp != -99){
+      temp = int(temp / 16);
+      
+      //Put together the string
+      n=sprintf(data, "%c%cT%d,%ldR%dV%d,%d[%c]", num_repeats, data_count, intTemp, temp, rssi, battV, chargeV, id);
+    }
+    else{
+      n=sprintf(data, "%c%cT%dR%dV%d,%d[%c]", num_repeats, data_count, intTemp, rssi, battV, chargeV, id);
+    }
   }
 }
 
