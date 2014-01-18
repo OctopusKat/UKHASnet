@@ -209,12 +209,12 @@ void loop()
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
-      data_interval = random(1, 20) + count;
+      data_interval = random(10, 30) + count;
       //Serial.print("Next string on: ");
       //Serial.println(data_interval);
     }
     
-    if((count % 20) == 0){
+    if((count % 30) == 0){
     //Reboot Radio
     digitalWrite(rfm22_shutdown, HIGH);
     delay(1000);
