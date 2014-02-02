@@ -35,7 +35,7 @@ int charge_pin = 1; //ADC 1 - measure solar voltage
 //*************Misc Setup ****************/
 byte num_repeats = '3'; //The number of hops the message will make before stopping
 
-int n, count = 1, data_interval = 8, path = 0, intTemp = 0, battV = 0, chargeV = 0;
+int n, count = 1, data_interval = 8, path = 0, intTemp = 0, battV = 0, chargeV = 0, packet_len;
 byte data_count = 97; // 'a'
 float ftemp;
 char tempbuf[12] = "0";
@@ -63,7 +63,7 @@ void setupRFM22(){
   rf22.spiWrite(0x02A, 0x10);
 }
 
-void gen_Data(){
+int gen_Data(){
   
   //**** Internal Temperature (RFM22) ******
   intTemp = rf22.temperatureRead( 0x00,0 ) / 2;  //from RFM22
@@ -105,6 +105,7 @@ void gen_Data(){
       n=sprintf(data, "%c%cT%dR%dV%d,%d[%c]", num_repeats, data_count, intTemp, rssi, battV, chargeV, id);
     }
   }
+  return n;
 }
 
 void setup() 
@@ -120,11 +121,11 @@ void setup()
   setupRFM22();
   delay(1000);
   
-  gen_Data();
+  packet_len = gen_Data();
   //Send first packet
   //Serial.println("Sending first packet");
   Serial.print("tx: "); Serial.println((char*)data);
-  rf22.send((byte*)data, sizeof(data));
+  rf22.send((byte*)data, packet_len);
   rf22.waitPacketSent();
 }
 
@@ -143,8 +144,17 @@ void loop()
       // Should be a message for us now   
       if (rf22.recv(buf, &len))
       {
-        Serial.print("rx: ");
-        Serial.println((char*)buf);
+       //= ;
+       Serial.print("rx: ");
+       for (int i=0; i<len; i++) {
+         Serial.print((char)buf[i]);
+         if (buf[i] == ']'){
+           Serial.println();
+           break;
+         }
+       }
+        
+        
         
         // Need to take the recieved buffer and decode it and add a reference
         
@@ -168,12 +178,13 @@ void loop()
               buf[i + 1] = id;
               buf[i + 2] = ']';
               path = 0;
+              packet_len = i + 2;
               
               //random delay to try and avoid packet collision
               delay(random(50, 500));
               
               //Serial.print("Repeat data: "); Serial.println((char*)buf);
-              rf22.send(buf, sizeof(buf));
+              rf22.send(buf, packet_len);
               rf22.waitPacketSent();
               break;
             }
@@ -209,10 +220,10 @@ void loop()
         data_count = 98; //'b'
       }
       
-      gen_Data();
+      packet_len = gen_Data();
       
       //Serial.print("tx: "); Serial.println((char*)data);
-      rf22.send((byte*)data, sizeof(data));
+      rf22.send((byte*)data, packet_len);
       rf22.waitPacketSent();
       
       //**** Packet Tx Interval ******
