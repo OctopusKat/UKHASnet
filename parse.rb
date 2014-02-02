@@ -22,7 +22,7 @@ sp = SerialPort.new(port_str, baud_rate, data_bits, stop_bits, parity)
 	dataFile.close
 	packet = sp_char[4..-1]	
 	#Send to UKHASnet
-	HTTParty.post("http://ukhasnet.philcrump.co.uk/api/upload", :query => { :origin => "B", :data => packet })
+	HTTParty.post("http://ukhas.net/api/upload", :query => { :origin => "B", :data => packet })
 		
    end  
  end  
