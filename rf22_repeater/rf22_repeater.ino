@@ -11,7 +11,6 @@ based on rf22_client.pde/ino from the RF22 library
 
 #include <SPI.h>
 #include <RF22.h>
-#include <EEPROM.h>
 
 //Required for DSB18b20 Temp sensor
 #include <OneWire.h>
@@ -21,18 +20,20 @@ byte address0[8] = {0x28, 0x38, 0x59, 0x57, 0x3, 0x0, 0x0, 0x8E}; // Ext DS18B20
 // Singleton instance of the radio
 RF22 rf22;
 
-int node_id = 0; //0 = gateway
+int node_type = 0; //0 = gateway, 1 = repeater with DS18b20 and voltage
 int n, count = 1, data_interval = 8, path = 0;
 byte data_count = 97; // 'a'
 byte num_repeats = '3';
 int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV = 800, chargeV;
+float ftemp;
+char tempbuf[12] = "0";
 
 //Msg format
 // Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
 //e.g. 3hL52.0,-0.0[A,A,B]
 
 char data[RF22_MAX_MESSAGE_LEN];
-char id = 'X';  
+char id = 'B';  
 
 void setupRFM22(){  
   
@@ -69,11 +70,11 @@ void gen_Data(){
   //**** Charger Voltage ******
   chargeV = analogRead(charge_pin);
   
-  if(node_id == 0){
+  if(node_type == 0){
     //For Gateway (no sensors attached)
-     n=sprintf(data, "%c%cT%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
+     n=sprintf(data, "%c%cL51.498,-0.0527T%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
   }
-  else if(node_id == 1){
+  else if(node_type == 1){
     
     //**** Temperature ******
     //Now we need to add the Temperature data (5bytes)
@@ -81,10 +82,13 @@ void gen_Data(){
     
     temp = get_Temp(address0);
     if(temp != -99){
-      temp = int(temp / 16);
+      ftemp = (float)temp / 16.0;
+      
+      //convert float to string
+      dtostrf(ftemp, 4, 2, tempbuf);
       
       //Put together the string
-      n=sprintf(data, "%c%cT%d,%ldR%dV%d,%d[%c]", num_repeats, data_count, intTemp, temp, rssi, battV, chargeV, id);
+      n=sprintf(data, "%c%cT%d,%sR%dV%d,%d[%c]", num_repeats, data_count, intTemp, tempbuf, rssi, battV, chargeV, id);
     }
     else{
       n=sprintf(data, "%c%cT%dR%dV%d,%d[%c]", num_repeats, data_count, intTemp, rssi, battV, chargeV, id);
@@ -106,16 +110,6 @@ void setup()
   
   Serial.begin(9600);
   randomSeed(analogRead(6));
-  
-  //Read EEPROM to detect if we already have set an ID for this node
-  //http://arduino.cc/en/Reference/EEPROMRead
-  id = EEPROM.read(0);
-  
-  if (id == 255){
-    Serial.print("ID = "); Serial.println(id);
-    Serial.println("Please setup node ID before running the repeater");
-    while(1){}
-  }
   
   digitalWrite(rfm22_shutdown, LOW); //Turn the rfm22 radio on
   delay(1000);
