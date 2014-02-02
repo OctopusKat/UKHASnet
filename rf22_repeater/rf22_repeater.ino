@@ -14,26 +14,36 @@ based on rf22_client.pde/ino from the RF22 library
 
 //Required for DSB18b20 Temp sensor
 #include <OneWire.h>
-OneWire  ds(5);  // on pin 10 (a 4.7K resistor is necessary)
+
+//*************Node ID Setup ****************/
+char id = 'B';  //Please register your node on the UKHASnet website
+int node_type = 0; //0 = gateway, 1 = repeater with DS18b20 and voltage, 2 = bridge (not implemented)
+char location_string[] = "51.498,-0.0527";
+
+//*************One Wire Setup ****************/
+// Please update the pin you have attached the onewire sensor network to
+// Also hard code the address (run the UKHASnet_first_run sketch first to
+//  search for the addresses
+OneWire  ds(5);  // on pin (a 4.7K resistor is necessary)
 byte address0[8] = {0x28, 0x38, 0x59, 0x57, 0x3, 0x0, 0x0, 0x8E}; // Ext DS18B20 28 38 59 57 3 0 0 8E
+
+//*************Pin Setup ****************/
+int rfm22_shutdown = 3; //This is the pin the SDN pin from the rfm22 radio module is connected to
+int batt_pin = 0; //ADC 0 - measure battery voltage
+int charge_pin = 1; //ADC 1 - measure solar voltage
+
+//*************Misc Setup ****************/
+byte num_repeats = '3'; //The number of hops the message will make before stopping
+
+int n, count = 1, data_interval = 8, path = 0, intTemp = 0, battV = 0, chargeV = 0;
+byte data_count = 97; // 'a'
+float ftemp;
+char tempbuf[12] = "0";
+char data[RF22_MAX_MESSAGE_LEN];
 
 // Singleton instance of the radio
 RF22 rf22;
 
-int node_type = 0; //0 = gateway, 1 = repeater with DS18b20 and voltage
-int n, count = 1, data_interval = 8, path = 0;
-byte data_count = 97; // 'a'
-byte num_repeats = '3';
-int rfm22_shutdown = 3, intTemp = 0, batt_pin = 0, charge_pin = 1, battV = 800, chargeV;
-float ftemp;
-char tempbuf[12] = "0";
-
-//Msg format
-// Repeat_value packet_sequence Data[Repeater ID 1, Repeater ID 2]
-//e.g. 3hL52.0,-0.0[A,A,B]
-
-char data[RF22_MAX_MESSAGE_LEN];
-char id = 'B';  
 
 void setupRFM22(){  
   
@@ -72,7 +82,8 @@ void gen_Data(){
   
   if(node_type == 0){
     //For Gateway (no sensors attached)
-     n=sprintf(data, "%c%cL51.498,-0.0527T%dR%d[%c]", num_repeats, data_count, intTemp, rssi, id);
+    // Location is hard coded
+     n=sprintf(data, "%c%cL%sT%dR%d[%c]", num_repeats, data_count, location_string, intTemp, rssi, id);
   }
   else if(node_type == 1){
     
@@ -100,13 +111,6 @@ void setup()
 {
   pinMode(rfm22_shutdown, OUTPUT);
   digitalWrite(rfm22_shutdown, HIGH); //Turn the rfm22 radio off
-  
-  //First check battery voltage
-  battV = analogRead(batt_pin);
-  
-  if (battV < 730){
-    delay(60000);
-  }
   
   Serial.begin(9600);
   randomSeed(analogRead(6));
